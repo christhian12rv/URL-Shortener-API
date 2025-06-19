@@ -6,10 +6,6 @@ const project = resolve(process.cwd(), 'tsconfig.json');
 module.exports = {
   extends: ['./base.js'],
   plugins: ['only-warn'],
-  globals: {
-    React: true,
-    JSX: true,
-  },
   env: {
     node: true,
   },
