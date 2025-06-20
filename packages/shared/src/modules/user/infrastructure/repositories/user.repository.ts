@@ -9,7 +9,7 @@ export class UserRepository {
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     return await this.prismaService.user.findUnique({
-      where: { email },
+      where: { email, deletedAt: null },
     });
   }
 
