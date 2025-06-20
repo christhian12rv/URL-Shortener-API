@@ -8,8 +8,8 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { RegisterDTO } from '../../dtos/register.dto';
-import { LoginDTO } from '../../dtos/login.dto';
+import { RegisterRequestDTO } from '../../dtos/request/register-request.dto';
+import { LoginRequestDTO } from '../../dtos/request/login-request.dto';
 import { LoginResponseDTO } from '../../dtos/response/login-response.dto';
 import { RegisterResponseDTO } from '../../dtos/response/register-response.dto';
 
@@ -19,13 +19,15 @@ export class AuthController {
 
   @Post('register')
   async register(
-    @Body() registerDTO: RegisterDTO,
+    @Body() registerRequestDTO: RegisterRequestDTO,
   ): Promise<RegisterResponseDTO> {
-    return await this.authService.register(registerDTO);
+    return await this.authService.register(registerRequestDTO);
   }
 
   @Post('login')
-  async login(@Body() loginDTO: LoginDTO): Promise<LoginResponseDTO> {
-    return await this.authService.login(loginDTO);
+  async login(
+    @Body() loginRequestDTO: LoginRequestDTO,
+  ): Promise<LoginResponseDTO> {
+    return await this.authService.login(loginRequestDTO);
   }
 }

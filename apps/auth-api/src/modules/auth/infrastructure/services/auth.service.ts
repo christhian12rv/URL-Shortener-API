@@ -3,11 +3,16 @@ import { UserRepository } from '@repo/shared/modules/user/infrastructure/reposit
 import { PasswordService } from '@repo/shared/modules/password/infrastructure/services/password.service';
 import { JwtService } from '@nestjs/jwt';
 import { plainToInstance } from 'class-transformer';
-import { RegisterDTO } from '../../dtos/register.dto';
-import { LoginDTO } from '../../dtos/login.dto';
+import { RegisterRequestDTO } from '../../dtos/request/register-request.dto';
+import { LoginRequestDTO } from '../../dtos/request/login-request.dto';
 import { LoginResponseDTO } from '../../dtos/response/login-response.dto';
 import { UserEntity } from '@repo/shared/modules/user/entities/user.entity';
 import { RegisterResponseDTO } from '../../dtos/response/register-response.dto';
+import {
+  LoginInvalidCredentialsException,
+  UserWithEmailAlreadyExistsException,
+} from '../../exceptions/auth.exceptions';
+import { AuthJwtPayloadDTO } from '@repo/shared/modules/jwt/dtos/auth-jwt-payload.dto';
 
 @Injectable()
 export class AuthService {
@@ -39,38 +44,43 @@ export class AuthService {
     return plainToInstance(UserEntity, user);
   }
 
-  async login(loginDTO: LoginDTO): Promise<LoginResponseDTO> {
-    const user = await this.validateUser(loginDTO.email, loginDTO.password);
+  async login(loginRequest: LoginRequestDTO): Promise<LoginResponseDTO> {
+    const user = await this.validateUser(
+      loginRequest.email,
+      loginRequest.password,
+    );
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new LoginInvalidCredentialsException();
     }
 
-    const payload = { email: user.email, sub: user.id };
-    console.log(payload);
+    const authJwtPayload: AuthJwtPayloadDTO = {
+      email: user.email,
+      sub: user.id,
+    };
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(authJwtPayload),
     };
   }
 
-  async register(registerDTO: RegisterDTO): Promise<RegisterResponseDTO> {
+  async register(
+    registerRequestDTO: RegisterRequestDTO,
+  ): Promise<RegisterResponseDTO> {
     const existingUser = await this.userRepository.findByEmail(
-      registerDTO.email,
+      registerRequestDTO.email,
     );
 
     if (existingUser) {
-      throw new UnauthorizedException(
-        `User with email ${registerDTO.email} already exists`,
-      );
+      throw new UserWithEmailAlreadyExistsException();
     }
 
     const hashedPassword = await this.passwordService.hash(
-      registerDTO.password,
+      registerRequestDTO.password,
     );
 
     const user = await this.userRepository.create({
-      ...registerDTO,
+      ...registerRequestDTO,
       password: hashedPassword,
     });
 
