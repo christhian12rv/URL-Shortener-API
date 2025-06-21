@@ -10,9 +10,10 @@ export class AppController {
   async redirect(
     @Param('shortCode') shortCode: string,
     @Res() response: Response,
-  ) {
+  ): Promise<void> {
     const originalUrl =
       await this.urlShortenerService.getOriginalUrl(shortCode);
-    return response.redirect(originalUrl);
+
+    response.redirect(originalUrl);
   }
 }

@@ -60,7 +60,7 @@ export class AuthService {
     };
 
     return {
-      accessToken: this.jwtService.sign(authJwtPayload),
+      accessToken: await this.jwtService.signAsync(authJwtPayload),
     };
   }
 

@@ -6,6 +6,8 @@ import { ShortUrlRepository } from '@repo/shared/modules/short-url/infrastructur
 import { CreateShortUrlRequestDTO } from '../../dtos/request/create-short-url-request.dto';
 import { UpdateShortUrlRequestDTO } from '../../dtos/request/update-short-url-request.dto';
 import { ShortUrlEntity } from '@repo/shared/modules/short-url/entities/short-url.entity';
+import { ShortUrlWithRedirectionUrlResponseDTO } from '../../dtos/response/short-url-with-redirection-url-response.dto';
+import { DeleteUrlResponseDTO } from '../../dtos/response/delete-url-response.dto';
 
 @Injectable()
 export class UrlShortenerService {
@@ -32,7 +34,7 @@ export class UrlShortenerService {
   async createShortUrl(
     createShortUrlRequestDto: CreateShortUrlRequestDTO,
     userId?: string,
-  ) {
+  ): Promise<ShortUrlWithRedirectionUrlResponseDTO> {
     const baseUrl = this.configService.get('BASE_URL_SHORTENER_SERVICE_URL');
 
     let shortCode = await this.generateUniqueShortCode();
@@ -49,7 +51,7 @@ export class UrlShortenerService {
     };
   }
 
-  async getOriginalUrl(shortCode: string) {
+  async getOriginalUrl(shortCode: string): Promise<string> {
     const shortUrl = await this.shortUrlRepository.findByShortCode(shortCode);
 
     if (!shortUrl) {
@@ -61,15 +63,15 @@ export class UrlShortenerService {
     return shortUrl.originalUrl;
   }
 
-  async getUserUrls(userId: string) {
-    return this.shortUrlRepository.findAllByUserId(userId);
+  async getUserUrls(userId: string): Promise<ShortUrlEntity[]> {
+    return await this.shortUrlRepository.findAllByUserId(userId);
   }
 
   async updateUrl(
     id: string,
     userId: string,
     updateShortUrlRequestDTO: UpdateShortUrlRequestDTO,
-  ) {
+  ): Promise<ShortUrlEntity> {
     const shortUrl = await this.shortUrlRepository.findByIdAndUserId(
       id,
       userId,
@@ -79,12 +81,12 @@ export class UrlShortenerService {
       throw new ShortUrlNotFoundException();
     }
 
-    return this.shortUrlRepository.update(id, {
+    return await this.shortUrlRepository.update(id, {
       originalUrl: updateShortUrlRequestDTO.originalUrl,
     });
   }
 
-  async deleteUrl(id: string, userId: string) {
+  async deleteUrl(id: string, userId: string): Promise<DeleteUrlResponseDTO> {
     const shortUrl = await this.shortUrlRepository.findByIdAndUserId(
       id,
       userId,
@@ -94,6 +96,10 @@ export class UrlShortenerService {
       throw new ShortUrlNotFoundException();
     }
 
-    return this.shortUrlRepository.update(id, { deletedAt: new Date() });
+    await this.shortUrlRepository.update(id, { deletedAt: new Date() });
+
+    return {
+      deleted: true,
+    };
   }
 }

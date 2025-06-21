@@ -16,6 +16,10 @@ import { CurrentAuthenticatedAuthJwtPayload } from '@repo/shared/modules/jwt/dec
 import { CreateShortUrlRequestDTO } from '../../dtos/request/create-short-url-request.dto';
 import { UpdateShortUrlRequestDTO } from '../../dtos/request/update-short-url-request.dto';
 import { AuthJwtPayloadDTO } from '@repo/shared/modules/jwt/dtos/auth-jwt-payload.dto';
+import { ShortUrlWithRedirectionUrlResponseDTO } from '../../dtos/response/short-url-with-redirection-url-response.dto';
+import { ShortUrlEntity } from '@repo/shared/modules/short-url/entities/short-url.entity';
+import { RequestWithUser } from '@repo/shared/dtos/request-with-user.dto';
+import { DeleteUrlResponseDTO } from '../../dtos/response/delete-url-response.dto';
 
 @Controller('url-shortener')
 export class UrlShortenerController {
@@ -23,26 +27,29 @@ export class UrlShortenerController {
 
   @Post()
   async createShortUrl(
-    @Body() dto: CreateShortUrlRequestDTO,
+    @Body() createShortUrlRequestDTO: CreateShortUrlRequestDTO,
     @CurrentAuthenticatedAuthJwtPayload() authJwtPayloadDTO?: AuthJwtPayloadDTO,
-  ) {
-    return this.urlShortenerService.createShortUrl(dto, authJwtPayloadDTO?.sub);
+  ): Promise<ShortUrlWithRedirectionUrlResponseDTO> {
+    return await this.urlShortenerService.createShortUrl(
+      createShortUrlRequestDTO,
+      authJwtPayloadDTO?.sub,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getUserUrls(@Req() req: Request & { user: { userId: string } }) {
-    return this.urlShortenerService.getUserUrls(req.user.userId);
+  async getUserUrls(@Req() req: RequestWithUser): Promise<ShortUrlEntity[]> {
+    return await this.urlShortenerService.getUserUrls(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   async updateUrl(
     @Param('id') id: string,
-    @Req() req: Request & { user: { userId: string } },
+    @Req() req: RequestWithUser,
     @Body() updateShortUrlRequestDTO: UpdateShortUrlRequestDTO,
-  ) {
-    return this.urlShortenerService.updateUrl(
+  ): Promise<ShortUrlEntity> {
+    return await this.urlShortenerService.updateUrl(
       id,
       req.user.userId,
       updateShortUrlRequestDTO,
@@ -53,8 +60,8 @@ export class UrlShortenerController {
   @Delete(':id')
   async deleteUrl(
     @Param('id') id: string,
-    @Req() req: Request & { user: { userId: string } },
-  ) {
-    return this.urlShortenerService.deleteUrl(id, req.user.userId);
+    @Req() req: RequestWithUser,
+  ): Promise<DeleteUrlResponseDTO> {
+    return await this.urlShortenerService.deleteUrl(id, req.user.userId);
   }
 }
