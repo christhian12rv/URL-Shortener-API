@@ -20,5 +20,6 @@ import { JwtStrategy } from '@repo/shared/modules/jwt/strategies/jwt.strategy';
   ],
   controllers: [UrlShortenerController],
   providers: [UrlShortenerService, JwtStrategy],
+  exports: [UrlShortenerService],
 })
 export class UrlShortenerModule {}

@@ -1,9 +1,9 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
-import { UrlShortenerService } from './modules/url-shortener/infrastructure/services/url-shortener.service';
+import { UrlShortenerService } from '../../../url-shortener/infrastructure/services/url-shortener.service';
 import { Response } from 'express';
 
 @Controller()
-export class AppController {
+export class RedirectionController {
   constructor(private urlShortenerService: UrlShortenerService) {}
 
   @Get(':shortCode')
