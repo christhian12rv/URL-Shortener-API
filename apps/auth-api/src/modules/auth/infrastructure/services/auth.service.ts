@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserRepository } from '@repo/shared/modules/user/infrastructure/repositories/user.repository';
 import { PasswordService } from '@repo/shared/modules/password/infrastructure/services/password.service';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +16,8 @@ import { AuthJwtPayloadDTO } from '@repo/shared/modules/jwt/dtos/auth-jwt-payloa
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private userRepository: UserRepository,
     private passwordService: PasswordService,
@@ -45,12 +47,15 @@ export class AuthService {
   }
 
   async login(loginRequest: LoginRequestDTO): Promise<LoginResponseDTO> {
+    this.logger.log('Starting login');
+
     const user = await this.validateUser(
       loginRequest.email,
       loginRequest.password,
     );
 
     if (!user) {
+      this.logger.log('Failed login - Invalid credentials');
       throw new LoginInvalidCredentialsException();
     }
 
@@ -59,19 +64,26 @@ export class AuthService {
       sub: user.id,
     };
 
+    const accessToken = await this.jwtService.signAsync(authJwtPayload);
+
+    this.logger.log('Completed login');
+
     return {
-      accessToken: await this.jwtService.signAsync(authJwtPayload),
+      accessToken,
     };
   }
 
   async register(
     registerRequestDTO: RegisterRequestDTO,
   ): Promise<RegisterResponseDTO> {
+    this.logger.log('Starting register');
+
     const existingUser = await this.userRepository.findByEmail(
       registerRequestDTO.email,
     );
 
     if (existingUser) {
+      this.logger.log('Failed register - User with email already exists');
       throw new UserWithEmailAlreadyExistsException();
     }
 
@@ -83,6 +95,8 @@ export class AuthService {
       ...registerRequestDTO,
       password: hashedPassword,
     });
+
+    this.logger.log('Completed register');
 
     return plainToInstance(UserEntity, user);
   }
