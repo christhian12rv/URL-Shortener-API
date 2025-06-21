@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UserRepository } from '@repo/shared/modules/user/infrastructure/repositories/user.repository';
 import { PasswordService } from '@repo/shared/modules/password/infrastructure/services/password.service';
 import { JwtService } from '@nestjs/jwt';

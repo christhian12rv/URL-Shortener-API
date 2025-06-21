@@ -20,11 +20,25 @@ import { ShortUrlWithRedirectionUrlResponseDTO } from '../../dtos/response/short
 import { ShortUrlEntity } from '@repo/shared/modules/short-url/entities/short-url.entity';
 import { RequestWithUser } from '@repo/shared/dtos/request-with-user.dto';
 import { DeleteUrlResponseDTO } from '../../dtos/response/delete-url-response.dto';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
+@ApiTags('Encurtador de Url')
 @Controller('url-shortener')
 export class UrlShortenerController {
   constructor(private urlShortenerService: UrlShortenerService) {}
 
+  @ApiBearerAuth('auth-token')
+  @ApiOperation({ summary: 'Encurtar url (sem ou com autenticação)' })
+  @ApiResponse({
+    status: 201,
+    description: 'Url encurtada com sucesso',
+    type: ShortUrlWithRedirectionUrlResponseDTO,
+  })
   @Post()
   async createShortUrl(
     @Body() createShortUrlRequestDTO: CreateShortUrlRequestDTO,
@@ -36,12 +50,34 @@ export class UrlShortenerController {
     );
   }
 
+  @ApiBearerAuth('auth-token')
+  @ApiOperation({
+    summary: 'Busca por todas as Urls criadas pelo usuário autenticado',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Urls encontradas com sucesso',
+    type: [ShortUrlEntity],
+  })
   @UseGuards(JwtAuthGuard)
   @Get()
   async getUserUrls(@Req() req: RequestWithUser): Promise<ShortUrlEntity[]> {
     return await this.urlShortenerService.getUserUrls(req.user.userId);
   }
 
+  @ApiBearerAuth('auth-token')
+  @ApiOperation({
+    summary: 'Alteração do link original de uma Url encurtada',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Link original alterado com sucesso',
+    type: ShortUrlEntity,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Url encurtada não encontrada',
+  })
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   async updateUrl(
@@ -56,6 +92,19 @@ export class UrlShortenerController {
     );
   }
 
+  @ApiBearerAuth('auth-token')
+  @ApiOperation({
+    summary: 'Exclusão de uma Url encurtada',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Url encurtada excluída com sucesso',
+    type: ShortUrlEntity,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Url encurtada não encontrada',
+  })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteUrl(
