@@ -1,6 +1,6 @@
 {
   "name": "my-turborepo",
-  "version": "0.0.0",
+  "version": "v1.0.0",
   "private": true,
   "description": "",
   "author": "",
@@ -12,11 +12,13 @@
     "test:e2e": "turbo run test:e2e",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "changelog": "pnpm exec conventional-changelog -p ./conventional-changelog-parser-config.js -i CHANGELOG.md -s -r 0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "conventional-changelog-cli": "^5.0.0",
     "husky": "^9.1.7",
     "prettier": "^3.2.5",
     "turbo": "^2.5.4"
