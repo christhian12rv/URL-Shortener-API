@@ -1,10 +1,14 @@
+import 'dotenv/config';
 import apm from 'elastic-apm-node';
-apm.start({
-  serviceName: process.env.ELASTIC_APM_URL_SHORTENER_API_SERVICE_NAME,
-  verifyServerCert: false,
-  serverUrl: process.env.ELASTIC_APM_SERVER_URL,
-  logLevel: 'debug',
-});
+
+if (process.env.APM_ENABLED === 'true') {
+  apm.start({
+    serviceName: process.env.ELASTIC_APM_URL_SHORTENER_API_SERVICE_NAME,
+    serverUrl: process.env.ELASTIC_APM_SERVER_URL,
+    secretToken: process.env.ELASTIC_APM_SECRET_TOKEN || null,
+    verifyServerCert: false,
+  });
+}
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -39,7 +43,7 @@ async function bootstrap() {
     const swaggerDocumentFactory = () =>
       SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup(
-      process.env.URL_SHORTENER_SERVICE_SWAGGER_PATH,
+      process.env.URL_SHORTENER_API_SWAGGER_PATH,
       app,
       swaggerDocumentFactory,
     );
@@ -48,14 +52,14 @@ async function bootstrap() {
 
     app.useGlobalPipes(new ValidationPipe());
 
-    const port = process.env.URL_SHORTENER_SERVICE_PORT;
+    const port = process.env.URL_SHORTENER_API_PORT;
     await app.listen(port);
 
     logger.log(
-      `Application is running on: ${process.env.BASE_URL_SHORTENER_SERVICE_URL}`,
+      `Application is running on: ${process.env.URL_SHORTENER_API_BASE_URL}`,
     );
     logger.log(
-      `Swagger is running on: ${process.env.BASE_URL_SHORTENER_SERVICE_URL}/${process.env.URL_SHORTENER_SERVICE_SWAGGER_PATH}`,
+      `Swagger is running on: ${process.env.URL_SHORTENER_API_BASE_URL}/${process.env.URL_SHORTENER_API_SWAGGER_PATH}`,
     );
   } catch (error) {
     logger.error('Failed to start application:', error);

@@ -17,7 +17,7 @@ RUN corepack enable && corepack prepare pnpm@8.15.5 --activate
 
 RUN pnpm add -g turbo
 COPY . .
-RUN turbo prune auth-api --docker
+RUN turbo prune url-shortener-api --docker
 
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
@@ -51,9 +51,10 @@ RUN pnpm dlx turbo build
 FROM base AS runner
 WORKDIR /app
 
-COPY docker-entrypoint.sh .
-RUN chmod +x ./docker-entrypoint.sh
-ENTRYPOINT ["./docker-entrypoint.sh"]
+COPY prisma-migrate-deploy.sh .
+COPY docker-entrypoint.prod.sh .
+RUN chmod +x ./docker-entrypoint.prod.sh
+ENTRYPOINT ["./docker-entrypoint.prod.sh"]
 
 # Don't run production as root
 RUN addgroup --system --gid 1001 expressjs
@@ -61,4 +62,4 @@ RUN adduser --system --uid 1001 expressjs
 USER expressjs
 COPY --from=installer /app .
 
-CMD node apps/auth-api/dist/src/main.js
+CMD node apps/url-shortener-api/dist/src/main.js

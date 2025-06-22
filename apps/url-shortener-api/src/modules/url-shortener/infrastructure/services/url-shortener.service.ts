@@ -39,7 +39,7 @@ export class UrlShortenerService {
   ): Promise<ShortUrlWithRedirectionUrlResponseDTO> {
     this.logger.log('Starting createShortUrl');
 
-    const baseUrl = this.configService.get('BASE_URL_SHORTENER_SERVICE_URL');
+    const baseUrl = this.configService.get('URL_SHORTENER_API_BASE_URL');
 
     const shortCode = await this.generateUniqueShortCode();
 

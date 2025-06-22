@@ -27,6 +27,18 @@ services:
     networks:
       - url_shortener_api_network
 
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: url_shortener_api_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - '5432:5432'
+    networks:
+      - url_shortener_api_network
+
 networks:
   url_shortener_api_network:
     external: true

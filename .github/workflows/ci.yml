@@ -42,6 +42,7 @@ jobs:
       - name: 📦 Instalar dependências
         run: |
           pnpm install --frozen-lockfile
+          pnpm add -g dotenv-cli
 
       - name: 🧪 Esperar banco de dados
         run: |
@@ -54,14 +55,8 @@ jobs:
         run: pnpm lint
 
       - name: 🧪 Rodar Testes
-        env:
-          DATABASE_URL: postgresql://postgres:12345678@localhost:5432/url_shortener_api_db
-          JWT_SECRET: my_jwt_secret
-          AUTH_SERVICE_PORT: 3000
-          BASE_AUTH_SERVICE_URL: http://localhost:3000
-          AUTH_SERVICE_SWAGGER_PATH: api/docs
-
-          URL_SHORTENER_SERVICE_PORT: 3001
-          BASE_URL_SHORTENER_SERVICE_URL: http://localhost:3001
-          URL_SHORTENER_SERVICE_SWAGGER_PATH: api/docs
-        run: pnpm test
+        run: |
+          dotenv -e ./apps/auth-api/.env.test.local
+          dotenv -e ./apps/url-shortener-api/.env.test.local
+          dotenv -e ./packages/shared/.env.test.local
+          pnpm test

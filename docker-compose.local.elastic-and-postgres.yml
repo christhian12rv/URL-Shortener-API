@@ -5,12 +5,12 @@ services:
     container_name: auth-api
     build:
       context: .
-      dockerfile: ./apps/auth-api/Dockerfile
+      dockerfile: ./apps/auth-api/Dockerfile.local
     restart: always
     ports:
       - 3000:3000
     env_file:
-      - .env.docker
+      - ./apps/auth-api/.env.docker.local
     networks:
       - url_shortener_api_network
     depends_on:
@@ -20,16 +20,28 @@ services:
     container_name: url-shortener-api
     build:
       context: .
-      dockerfile: ./apps/url-shortener-api/Dockerfile
+      dockerfile: ./apps/url-shortener-api/Dockerfile.local
     restart: always
     ports:
       - 3001:3001
     env_file:
-      - .env.docker
+      - ./apps/auth-api/.env.docker.local
     networks:
       - url_shortener_api_network
     depends_on:
       - apm-server
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: url_shortener_api_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - '5432:5432'
+    networks:
+      - url_shortener_api_network
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1

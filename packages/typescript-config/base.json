@@ -14,6 +14,12 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ES2022"
+    "target": "ES2022",
+    "paths": {
+      "@repo/eslint-config/*": ["../eslint-config/*"],
+      "@repo/jest-config/*": ["../jest-config/*"],
+      "@repo/shared/*": ["../shared/src/*"],
+      "@repo/typescript-config/*": ["../typescript-config/*"]
+    }
   }
 }
