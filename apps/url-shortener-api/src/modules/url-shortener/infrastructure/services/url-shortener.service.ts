@@ -8,6 +8,8 @@ import { UpdateShortUrlRequestDTO } from '../../dtos/request/update-short-url-re
 import { ShortUrlEntity } from '@repo/shared/modules/short-url/entities/short-url.entity';
 import { ShortUrlWithRedirectionUrlResponseDTO } from '../../dtos/response/short-url-with-redirection-url-response.dto';
 import { DeleteUrlResponseDTO } from '../../dtos/response/delete-url-response.dto';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 
 @Injectable()
 export class UrlShortenerService {
@@ -16,6 +18,7 @@ export class UrlShortenerService {
   constructor(
     private shortUrlRepository: ShortUrlRepository,
     private configService: ConfigService,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   private async generateUniqueShortCode(): Promise<string> {
@@ -60,6 +63,17 @@ export class UrlShortenerService {
   async getOriginalUrl(shortCode: string): Promise<string> {
     this.logger.log('Starting getOriginalUrl');
 
+    const cacheKey = `shorturl:${shortCode}`;
+    const cachedUrl = await this.redis.get(cacheKey);
+
+    if (cachedUrl) {
+      this.logger.log('Cache hit for shortCode: ' + shortCode);
+      await this.shortUrlRepository.incrementOneClickByShortCode(shortCode);
+      this.logger.log('Completed getOriginalUrl');
+
+      return cachedUrl;
+    }
+
     const shortUrl = await this.shortUrlRepository.findByShortCode(shortCode);
 
     if (!shortUrl) {
@@ -67,9 +81,11 @@ export class UrlShortenerService {
       throw new ShortUrlNotFoundException();
     }
 
-    await this.shortUrlRepository.incrementOneClick(shortUrl.id);
+    await this.shortUrlRepository.incrementOneClickByShortCode(shortCode);
 
-    this.logger.log('Starting getOriginalUrl');
+    await this.redis.set(cacheKey, shortUrl.originalUrl, 'EX', 3600);
+
+    this.logger.log('Completed getOriginalUrl');
 
     return shortUrl.originalUrl;
   }

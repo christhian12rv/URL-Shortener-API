@@ -5,6 +5,7 @@ import { ShortUrlModule } from '@repo/shared/modules/short-url/short-url.module'
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from '@repo/shared/modules/jwt/strategies/jwt.strategy';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
@@ -15,6 +16,15 @@ import { JwtStrategy } from '@repo/shared/modules/jwt/strategies/jwt.strategy';
         signOptions: { expiresIn: '1d' },
       }),
       inject: [ConfigService],
+    }),
+    RedisModule.forRoot({
+      type: 'single',
+      options: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+        username: process.env.REDIS_USERNAME || undefined,
+        password: process.env.REDIS_PASSWORD || undefined,
+      },
     }),
     ShortUrlModule,
   ],

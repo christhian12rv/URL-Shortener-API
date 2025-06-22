@@ -60,9 +60,11 @@ export class ShortUrlRepository {
     });
   }
 
-  async incrementOneClick(id: string): Promise<ShortUrlEntity> {
+  async incrementOneClickByShortCode(
+    shortCode: string,
+  ): Promise<ShortUrlEntity> {
     return await this.prismaService.shortUrl.update({
-      where: { id, deletedAt: null },
+      where: { shortCode, deletedAt: null },
       data: {
         clicks: { increment: 1 },
       },

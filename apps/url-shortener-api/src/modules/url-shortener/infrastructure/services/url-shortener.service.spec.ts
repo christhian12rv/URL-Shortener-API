@@ -15,7 +15,7 @@ const mockShortUrlRepository = (): jest.Mocked<
   findByShortCodeWithoutDeletedAtFilter: jest.fn(),
   create: jest.fn(),
   findByShortCode: jest.fn(),
-  incrementOneClick: jest.fn(),
+  incrementOneClickByShortCode: jest.fn(),
   findAllByUserId: jest.fn(),
   findByIdAndUserId: jest.fn(),
   update: jest.fn(),
@@ -33,6 +33,7 @@ describe('UrlShortenerService', () => {
   let urlShortenerService: UrlShortenerService;
   let shortUrlRepository: ReturnType<typeof mockShortUrlRepository>;
   let configService: ReturnType<typeof mockConfigService>;
+  let redis: any;
 
   const userId = '8b5e100f-c6ee-4bc8-8757-589ae1906090';
   const shortCode = 'abc123';
@@ -47,11 +48,16 @@ describe('UrlShortenerService', () => {
   } as ShortUrlEntity;
 
   beforeEach(async () => {
+    redis = {
+      get: jest.fn(),
+      set: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UrlShortenerService,
         { provide: ShortUrlRepository, useFactory: mockShortUrlRepository },
         { provide: ConfigService, useFactory: mockConfigService },
+        { provide: 'default_IORedisModuleConnectionToken', useValue: redis },
       ],
     }).compile();
 
@@ -94,24 +100,57 @@ describe('UrlShortenerService', () => {
   });
 
   describe('getOriginalUrl', () => {
-    it('should return the original url and increment click', async () => {
-      shortUrlRepository.findByShortCode.mockResolvedValue(shortUrlEntity);
-      shortUrlRepository.incrementOneClick.mockResolvedValue(undefined);
+    it('should return the original url from cache and increment click', async () => {
+      redis.get.mockResolvedValue(shortUrlEntity.originalUrl);
+      shortUrlRepository.incrementOneClickByShortCode = jest.fn();
 
       const result = await urlShortenerService.getOriginalUrl(shortCode);
 
       expect(result).toBe(shortUrlEntity.originalUrl);
-      expect(shortUrlRepository.incrementOneClick).toHaveBeenCalledWith(
-        shortUrlEntity.id,
+      expect(redis.get).toHaveBeenCalledWith(`shorturl:${shortCode}`);
+      expect(
+        shortUrlRepository.incrementOneClickByShortCode,
+      ).toHaveBeenCalledWith(shortCode);
+      expect(redis.set).not.toHaveBeenCalled();
+      expect(shortUrlRepository.findByShortCode).not.toHaveBeenCalled();
+    });
+
+    it('should return the original url from DB, set cache, and increment click if not cached', async () => {
+      redis.get.mockResolvedValue(null);
+      shortUrlRepository.findByShortCode.mockResolvedValue(shortUrlEntity);
+      shortUrlRepository.incrementOneClickByShortCode = jest.fn();
+      redis.set.mockResolvedValue('OK');
+
+      const result = await urlShortenerService.getOriginalUrl(shortCode);
+
+      expect(result).toBe(shortUrlEntity.originalUrl);
+      expect(redis.get).toHaveBeenCalledWith(`shorturl:${shortCode}`);
+      expect(shortUrlRepository.findByShortCode).toHaveBeenCalledWith(
+        shortCode,
+      );
+      expect(
+        shortUrlRepository.incrementOneClickByShortCode,
+      ).toHaveBeenCalledWith(shortCode);
+      expect(redis.set).toHaveBeenCalledWith(
+        `shorturl:${shortCode}`,
+        shortUrlEntity.originalUrl,
+        'EX',
+        3600,
       );
     });
 
-    it('should throw if short url not found', async () => {
+    it('should throw if short url not found (not cached, not in DB)', async () => {
+      redis.get.mockResolvedValue(null);
       shortUrlRepository.findByShortCode.mockResolvedValue(null);
 
       await expect(
         urlShortenerService.getOriginalUrl(shortCode),
       ).rejects.toBeInstanceOf(ShortUrlNotFoundException);
+      expect(redis.get).toHaveBeenCalledWith(`shorturl:${shortCode}`);
+      expect(shortUrlRepository.findByShortCode).toHaveBeenCalledWith(
+        shortCode,
+      );
+      expect(redis.set).not.toHaveBeenCalled();
     });
   });
 
