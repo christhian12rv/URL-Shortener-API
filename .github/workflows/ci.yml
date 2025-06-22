@@ -56,7 +56,7 @@ jobs:
 
       - name: 🧪 Rodar Testes
         run: |
-          pnpm exec dotenv -e ./apps/auth-api/.env.test.local
-          pnpm exec dotenv -e ./apps/url-shortener-api/.env.test.local
-          pnpm exec dotenv -e ./packages/shared/.env.test.local
-          pnpm test
+          pnpm exec dotenv \
+            -e ./apps/auth-api/.env.test.local \
+            -e ./apps/url-shortener-api/.env.test.local \
+            -- pnpm test
