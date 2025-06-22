@@ -37,7 +37,7 @@ RUN pnpm install
 # Build the project and its dependencies
 COPY --from=builder /app/out/full/ .
 
-RUN pnpm --filter shared exec prisma generate --schema=prisma/schema.prisma
+RUN pnpm --filter @repo/shared exec prisma generate --schema=prisma/schema.prisma
 
 # Uncomment and use build args to enable remote caching
 # ARG TURBO_TEAM
@@ -50,6 +50,10 @@ RUN pnpm dlx turbo build
 
 FROM base AS runner
 WORKDIR /app
+
+COPY docker-entrypoint.sh .
+RUN chmod +x ./docker-entrypoint.sh
+ENTRYPOINT ["./docker-entrypoint.sh"]
 
 # Don't run production as root
 RUN addgroup --system --gid 1001 expressjs

@@ -1,3 +1,11 @@
+import apm from 'elastic-apm-node';
+apm.start({
+  serviceName: process.env.ELASTIC_APM_AUTH_API_SERVICE_NAME,
+  verifyServerCert: false,
+  serverUrl: process.env.ELASTIC_APM_SERVER_URL,
+  logLevel: 'debug',
+});
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from '@repo/shared/filters/http-exception.filter';

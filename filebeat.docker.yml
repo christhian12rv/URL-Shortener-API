@@ -1,0 +1,20 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    processors:
+      - add_docker_metadata: ~
+      - drop_event:
+          when:
+            equals:
+              container.name: filebeat
+
+output.elasticsearch:
+  hosts: ['http://elasticsearch:9200']
+
+setup.kibana:
+  host: 'kibana:5601'
+
+setup.template.enabled: true
+setup.template.name: 'filebeat'
+setup.template.pattern: 'filebeat-*'
