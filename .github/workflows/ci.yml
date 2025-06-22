@@ -42,7 +42,7 @@ jobs:
       - name: 📦 Instalar dependências
         run: |
           pnpm install --frozen-lockfile
-          pnpm add -D dotenv-cli
+          pnpm add -D dotenv-cli -w
 
       - name: 🧪 Esperar banco de dados
         run: |
