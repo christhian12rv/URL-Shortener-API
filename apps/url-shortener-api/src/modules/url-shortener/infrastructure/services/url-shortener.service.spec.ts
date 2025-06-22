@@ -7,15 +7,7 @@ import { CreateShortUrlRequestDTO } from '../../dtos/request/create-short-url-re
 import { UpdateShortUrlRequestDTO } from '../../dtos/request/update-short-url-request.dto';
 import { ShortUrlEntity } from '@repo/shared/modules/short-url/entities/short-url.entity';
 import { ShortUrlNotFoundException } from '../../exceptions/url-shortener.exceptions';
-import {
-  jest,
-  describe,
-  it,
-  expect,
-  beforeEach,
-  beforeAll,
-  afterAll,
-} from '@jest/globals';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
 const mockShortUrlRepository = (): jest.Mocked<
   Partial<ShortUrlRepository>

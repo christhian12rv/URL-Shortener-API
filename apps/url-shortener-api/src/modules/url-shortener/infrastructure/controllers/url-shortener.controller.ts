@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
   Put,
-  Res,
 } from '@nestjs/common';
 import { UrlShortenerService } from '../services/url-shortener.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
