@@ -6,7 +6,9 @@ if (process.env.APM_ENABLED === 'true') {
     serviceName: process.env.ELASTIC_APM_URL_SHORTENER_API_SERVICE_NAME,
     serverUrl: process.env.ELASTIC_APM_SERVER_URL,
     secretToken: process.env.ELASTIC_APM_SECRET_TOKEN || null,
-    verifyServerCert: false,
+    environment: process.env.ELASTIC_APM_ENVIRONMENT || null,
+    verifyServerCert:
+      process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true' || false,
   });
 }
 

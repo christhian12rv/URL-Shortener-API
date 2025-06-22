@@ -7,7 +7,8 @@ if (process.env.APM_ENABLED === 'true') {
     serverUrl: process.env.ELASTIC_APM_SERVER_URL,
     secretToken: process.env.ELASTIC_APM_SECRET_TOKEN || null,
     environment: process.env.ELASTIC_APM_ENVIRONMENT || null,
-    verifyServerCert: false,
+    verifyServerCert:
+      process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true' || false,
   });
 }
 
