@@ -41,7 +41,7 @@ export class UrlShortenerService {
 
     const baseUrl = this.configService.get('BASE_URL_SHORTENER_SERVICE_URL');
 
-    let shortCode = await this.generateUniqueShortCode();
+    const shortCode = await this.generateUniqueShortCode();
 
     const shortUrl = await this.shortUrlRepository.create({
       originalUrl: createShortUrlRequestDto.originalUrl,
