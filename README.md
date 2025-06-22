@@ -1,119 +1,286 @@
-# Turborepo starter
+# URL Shortener API Monorepo
 
-This is a community-maintained example. If you experience a problem, please submit a pull request with a fix. GitHub Issues will be closed.
+## Overview
 
-## Using this example
+This project is a production-ready, scalable URL Shortener system built as a monorepo using [Turborepo](https://turbo.build/) and [NestJS](https://nestjs.com/). It includes:
 
-Run the following command:
+- **Authentication API** (`apps/auth-api`): Handles user authentication and JWT issuance.
+- **URL Shortener API** (`apps/url-shortener-api`): Manages URL shortening, redirection, and related features. Uses Redis for high-performance URL redirection caching.
+- **Shared Packages** (`packages/shared`): Common code, DTOs, entities, and utilities.
+- **Config Packages**: Centralized ESLint, Jest, and TypeScript configurations for consistency across the monorepo.
 
-```bash
-npx create-turbo@latest -e with-nestjs
+The system is designed for cloud deployment, observability, and horizontal scalability. Redis is used to cache redirection lookups, reducing database load and improving latency.
+
+---
+
+## Supported Node.js and npm Versions
+
+- **Node.js**: `>=18` (recommended: 18.x, as used in Docker and CI)
+- **npm**: Use [pnpm](https://pnpm.io/) (see `packageManager` in root `package.json`)
+
+---
+
+## Monorepo Structure & Turborepo
+
+This project uses [Turborepo](https://turbo.build/) for high-performance monorepo management. The structure is:
+
+```
+url-shortener-api/
+├── apps/
+│   ├── auth-api/              # Authentication microservice (NestJS)
+│   └── url-shortener-api/     # URL shortener microservice (NestJS)
+├── packages/
+│   ├── shared/                # Shared code (DTOs, entities, modules, etc)
+│   ├── eslint-config/         # Centralized ESLint config
+│   ├── jest-config/           # Centralized Jest config
+│   └── typescript-config/     # Centralized TypeScript config
+├── scripts/                   # Helper scripts for Docker Compose
+├── docker-compose.*.yml       # Docker Compose files for different stacks
+└── ...
 ```
 
-## What's inside?
+- **Apps** are independent NestJS services.
+- **Packages** provide shared logic and configuration.
+- **Turborepo** enables fast builds, caching, and task orchestration across the monorepo.
 
-This Turborepo includes the following packages/apps:
+---
 
-### Apps and Packages
+## Running the Project
 
-    .
-    ├── apps
-    │   ├── api                       # NestJS app (https://nestjs.com).
-    └── packages
-        ├── @repo/api                 # Shared `NestJS` resources.
-        ├── @repo/eslint-config       # `eslint` configurations (includes `prettier`)
-        ├── @repo/jest-config         # `jest` configurations
-        ├── @repo/typescript-config   # `tsconfig.json`s used throughout the monorepo
-        └── @repo/ui                  # Shareable stub React component library.
+### 1. With Docker Compose
 
-Each package and application are 100% [TypeScript](https://www.typescriptlang.org/) safe.
+Multiple Docker Compose files are provided for different stacks:
 
-### Utilities
+- `docker-compose.local.yml`: Minimal stack (APIs only)
+- `docker-compose.local.postgres.yml`: APIs + Postgres
+- `docker-compose.local.elastic.yml`: APIs + Elastic Stack
+- `docker-compose.local.elastic-and-postgres.yml`: Full stack (APIs, Postgres, Elastic, Kibana, APM)
 
-This `Turborepo` has some additional tools already set for you:
+#### Scripts
 
-- [TypeScript](https://www.typescriptlang.org/) for static type-safety
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-- [Jest](https://prettier.io) & [Playwright](https://playwright.dev/) for testing
-
-### Commands
-
-This `Turborepo` already configured useful commands for all your apps and packages.
-
-#### Build
+Use the scripts in `/scripts` to start the desired stack:
 
 ```bash
-# Will build all the app & packages with the supported `build` script.
-pnpm run build
+# APIs only
+./scripts/docker-compose-up.local.sh
 
-# ℹ️ If you plan to only build apps individually,
-# Please make sure you've built the packages first.
+# APIs + Postgres
+./scripts/docker-compose-up.local.postgres.sh
+
+# APIs + Elastic Stack
+./scripts/docker-compose-up.local.elastic.sh
+
+# Full stack (APIs, Postgres, Elastic, Kibana, APM)
+./scripts/docker-compose-up.local.elastic-and-postgres.sh
 ```
 
-#### Develop
+**Difference:** Each script brings up a different set of services, depending on your local development or testing needs.
+
+### 2. Running Locally (without Docker Compose)
+
+You can run the services directly using Turborepo or individually:
 
 ```bash
-# Will run the development server for all the app & packages with the supported `dev` script.
+# Install dependencies (at root)
+pnpm install
+
+# Start all apps in dev mode (at root)
 pnpm run dev
+
+# Or, start a specific app:
+cd apps/auth-api && pnpm run dev
+cd apps/url-shortener-api && pnpm run dev
 ```
 
-#### test
+---
+
+## Building the Project
+
+- **Build everything (from root):**
+  ```bash
+  pnpm run build
+  ```
+- **Build a specific app/package:**
+  ```bash
+  cd apps/auth-api && pnpm run build
+  cd apps/url-shortener-api && pnpm run build
+  cd packages/shared && pnpm run build
+  ```
+
+---
+
+## Linting & Formatting
+
+- **Lint everything (from root):**
+  ```bash
+  pnpm run lint
+  ```
+- **Lint a specific app/package:**
+  ```bash
+  cd apps/auth-api && pnpm run lint
+  cd apps/url-shortener-api && pnpm run lint
+  cd packages/shared && pnpm run lint
+  ```
+- **Format code (from root):**
+  ```bash
+  pnpm format
+  ```
+
+---
+
+## Husky Setup
+
+Husky is used for Git hooks (e.g., pre-commit linting/formatting). To set up Husky after cloning:
 
 ```bash
-# Will launch a test suites for all the app & packages with the supported `test` script.
-pnpm run test
-
-# You can launch e2e testes with `test:e2e`
-pnpm run test:e2e
-
-# See `@repo/jest-config` to customize the behavior.
+pnpm install
+pnpm run prepare
 ```
 
-#### Lint
+---
 
-```bash
-# Will lint all the app & packages with the supported `lint` script.
-# See `@repo/eslint-config` to customize the behavior.
-pnpm run lint
-```
+## Running Tests
 
-#### Format
+- **Unit tests (all apps / packages):**
+  ```bash
+  pnpm run test
+  ```
+- **Unit tests (individual app):**
+  ```bash
+  cd apps/auth-api && pnpm run test
+  cd apps/url-shortener-api && pnpm run test
+  ```
+- **End-to-end tests:**
+  ```bash
+  pnpm run test:e2e
+  # or per app:
+  cd apps/auth-api && pnpm run test:e2e
+  cd apps/url-shortener-api && pnpm run test:e2e
+  ```
 
-```bash
-# Will format all the supported `.ts,.js,json,.tsx,.jsx` files.
-# See `@repo/eslint-config/prettier-base.js` to customize the behavior.
-pnpm format
-```
+---
 
-### Remote Caching
+## Environment Variables (.env)
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+Each service (apps/) requires its own `.env` file. Example variable names:
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+### Common Variables
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+- `DATABASE_URL` (Postgres connection string)
+- `JWT_SECRET` (JWT signing secret)
 
-```bash
-npx turbo login
-```
+### Auth API (`apps/auth-api/.env.local` or `.env.docker.local`)
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+- `AUTH_API_PORT=3000`
+- `AUTH_API_BASE_URL=http://localhost:3000`
+- `AUTH_API_SWAGGER_PATH=api/docs`
+- `APM_ENABLED=true`
+- `ELASTIC_APM_AUTH_API_SERVICE_NAME=auth-api`
+- `ELASTIC_APM_SERVER_URL=... (http://apm-server:8200 for local docker)`
+- `ELASTIC_APM_SECRET_TOKEN=... (not required for local docker)`
+- `ELASTIC_APM_ENVIRONMENT=local (not required for local docker)`
+- `ELASTIC_APM_VERIFY_SERVER_CERT=false`
+- `DATABASE_URL=... (postgresql://postgres:12345678@postgres:5432/url_shortener_api_db for local docker)`
+- `JWT_SECRET=your_jwt_secret`
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+### URL Shortener API (`apps/url-shortener-api/.env.local` or `.env.docker.local`)
 
-```bash
-npx turbo link
-```
+- `URL_SHORTENER_API_PORT=3001`
+- `URL_SHORTENER_API_BASE_URL=http://localhost:3001`
+- `URL_SHORTENER_API_SWAGGER_PATH=api/docs`
+- `APM_ENABLED=true`
+- `ELASTIC_APM_URL_SHORTENER_API_SERVICE_NAME=url-shortener-api`
+- `ELASTIC_APM_SERVER_URL=... (http://apm-server:8200 for local docker)`
+- `ELASTIC_APM_SECRET_TOKEN=... (not required for local docker)`
+- `ELASTIC_APM_ENVIRONMENT=local (not required for local docker)`
+- `ELASTIC_APM_VERIFY_SERVER_CERT=false`
+- `DATABASE_URL=... (postgresql://postgres:12345678@postgres:5432/url_shortener_api_db for local docker)`
+- `JWT_SECRET=your_jwt_secret`
+- `REDIS_HOST=...` (default: `localhost` if installed locally or with docker)
+- `REDIS_PORT=...` (default: `6379` if installed locally or with docker)
+- `REDIS_PASSWORD=...` (optional, if your Redis instance requires authentication)
+
+#### Test Environments
+
+- Use `.env.test.local` in each app for test-specific overrides (see CI workflow for usage).
+
+---
+
+## API Documentation (Swagger)
+
+Both APIs expose interactive Swagger documentation:
+
+- **Auth API:** `/api/docs` (e.g., `http://localhost:3000/api/docs`) or defined in `.env` files
+- **URL Shortener API:** `/api/docs` (e.g., `http://localhost:3001/api/docs`) or defined in `.env` files
+
+All endpoints, request/response schemas, and authentication flows are documented in Swagger. Please refer to the Swagger UI for up-to-date API details.
+
+---
+
+## Deployment
+
+The system is deployed on [Render](https://render.com) for tests:
+
+- **Auth API:** [https://auth-api-yz49.onrender.com/](https://auth-api-yz49.onrender.com/)
+- **URL Shortener API:** [https://url-shortener-api-l9vs.onrender.com/](https://url-shortener-api-l9vs.onrender.com/)
+
+The deploy uses a managed Postgres database (Render), Redis Cloud, and is integrated with Elastic Cloud for APM (metrics, logs, tracing).
+
+---
+
+## Observability (Elastic APM)
+
+Both services are instrumented with Elastic APM for distributed tracing, metrics, and logging. Elastic APM configuration is controlled via environment variables (see above).
+
+---
+
+## Scalability & Improvement Points
+
+- **Horizontal Scaling:**
+
+  - Run multiple stateless APIs instances behind a load balancer for high availability and throughput.
+  - Use a shared database, centralized logging/metrics, and Redis caching to support distributed workloads.
+  - **Key improvements:**
+    - Add distributed rate limiting and abuse prevention (e.g., via Redis or API gateway).
+    - Implement centralized session/token revocation if needed.
+    - Consider database sharding or partitioning for very large datasets.
+  - **Biggest challenges:**
+    - Ensuring data consistency and cache coherence across instances.
+    - Managing distributed rate limiting and abuse detection.
+    - Scaling the database and cache layers to match API scale.
+
+- **Vertical Scaling:**
+
+  - Increase resources (CPU, RAM, storage) of a single server or container to handle more load per instance.
+  - Adjust resource limits in your orchestrator (if implemented) or upgrade your cloud/server instance as needed.
+  - **Key improvements:**
+    - Monitor application performance and resource usage to know when to scale up.
+    - Tune application and database settings for higher resource utilization.
+  - **Biggest challenges:**
+    - There is a physical or cost limit to how much a single machine can scale.
+    - Single point of failure: if the server goes down, the whole app is affected.
+    - No redundancy or high availability by itself.
+
+- **Best practice:**
+
+  - Combine horizontal and vertical scaling for maximum flexibility, reliability, and cost-effectiveness.
+
+- **Other improvements:**
+  - Add health checks and readiness probes for orchestration (e.g., Kubernetes, Docker Compose).
+  - Implement CI/CD pipelines for automated deploys.
+  - Add more granular monitoring and alerting for proactive issue detection.
+
+---
 
 ## Useful Links
 
-Learn more about the power of Turborepo:
+- [Turborepo Documentation](https://turborepo.com/docs)
+- [NestJS Documentation](https://docs.nestjs.com/)
+- [pnpm Documentation](https://pnpm.io/)
+- [Render](https://render.com/)
+- [Elastic Cloud](https://www.elastic.co/cloud/)
+- [Redis](https://redis.io/docs/latest/)
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+---
+
+For any questions or contributions, please open an issue or pull request.
