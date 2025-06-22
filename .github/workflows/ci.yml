@@ -42,7 +42,7 @@ jobs:
       - name: 📦 Instalar dependências
         run: |
           pnpm install --frozen-lockfile
-          pnpm add -g dotenv-cli
+          pnpm add -D dotenv-cli
 
       - name: 🧪 Esperar banco de dados
         run: |
@@ -56,7 +56,7 @@ jobs:
 
       - name: 🧪 Rodar Testes
         run: |
-          dotenv -e ./apps/auth-api/.env.test.local
-          dotenv -e ./apps/url-shortener-api/.env.test.local
-          dotenv -e ./packages/shared/.env.test.local
+          pnpm exec dotenv -e ./apps/auth-api/.env.test.local
+          pnpm exec dotenv -e ./apps/url-shortener-api/.env.test.local
+          pnpm exec dotenv -e ./packages/shared/.env.test.local
           pnpm test
